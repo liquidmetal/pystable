@@ -5,14 +5,10 @@ import numpy as np
 
 def get_physical_positions(width, height, squareSize=1.0):
     corners = []
-    for i in xrange(0, height*2):
-        for j in xrange(0, width, 2):
-            x = j + i%2
-            if x >= width:
-                continue
-
-            y = i
-
+    for col in xrange(0, width):
+        for row in xrange(0, height*2, 2):
+            x = col
+            y = row + col%2
             corners.append( (float(x*squareSize), float(y*squareSize), 0) )
 
     return corners
@@ -40,7 +36,7 @@ def main():
                     'rvecs': rvecs,
                     'tvecs': tvecs}
 
-    with open('intrincs.pickle', 'w') as fp:
+    with open('pickle.intrinsics', 'w') as fp:
         pickle.dump(output_dict, fp)
 
 if __name__ == '__main__':
