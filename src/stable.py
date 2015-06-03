@@ -167,6 +167,7 @@ def getAccumulatedRotation(w, h, theta_x, theta_y, theta_z, timestamps, prev, cu
                          [smallR[2][0], smallR[2][1], smallR[2][2], 0],
                          [0,         0,         0,         1]])
         transform = R * transform
+    R = getRodrigues(gyro_drifted[1], -gyro_drifted[0], -gyro_drifted[2])
 
     x = np.array([[1.0, 0, 0, 0],
                      [0, 1.0, 0, 0],
