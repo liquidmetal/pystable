@@ -1,7 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
+import scipy
 import numpy as np
 import math
+import cv2
+from scipy.interpolate import griddata
 
 def get_gaussian_kernel(sigma2, v1, v2, normalize=True):
     gauss = [math.exp(-(float(x*x) / sigma2)) for x in range(v1, v2+1)]
