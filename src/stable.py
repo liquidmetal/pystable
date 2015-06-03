@@ -271,18 +271,56 @@ def calcErrorAcrossVideo(videoObj, theta, timestamps, focal_length, gyro_delay=N
         current_timestamp = frameInfo['timestamp']
 
         if frameCount == 0:
-            # INCRMENT
-            frameCount += 1
-            previous_timestamp = current_timestamp
-            continue
+    def calcErrorAcrossVideo(self, videoObj, theta, timestamps, focal_length, gyro_delay=None, gyro_drift=None, rolling_shutter=None):
+        total_error = 0
+        for frameCount in xrange(videoObj.numFrames):
+            frameInfo = videoObj.frameInfo[frameCount]
+            current_timestamp = frameInfo['timestamp']
 
-        keypoints = frameInfo['keypoints']
-        if keypoints:
-            old_corners = frameInfo['keypoints'][0]
-            new_corners = frameInfo['keypoints'][1]
-        else:
-            # Don't use this for calculating errors
-            continue
+            if frameCount == 0:
+                # INCRMENT
+                #frameCount += 1
+                previous_timestamp = current_timestamp
+                continue
+
+            keypoints = frameInfo['keypoints']
+            if keypoints:
+                old_corners = frameInfo['keypoints'][0]
+                new_corners = frameInfo['keypoints'][1]
+            else:
+                # Don't use this for calculating errors
+                continue
+
+            # Ideally, after our transformation, we should get points from the
+            # thetas to match new_corners
+
+            #########################
+            # Step 0: Work with current parameters and calculate the error score
+            transform = getAccumulatedRotation(videoObj.frameWidth, videoObj.frameHeight, theta[0], theta[1], theta[2], timestamps, int(previous_timestamp), int(current_timestamp), focal_length, gyro_delay, gyro_drift, doSub=True)
+            transformed_corners = cv2.perspectiveTransform(old_corners, transform)
+            error = self.calcErrorScore(new_corners, transformed_corners)
+
+            #print "Error(%d) = %f" % (frameCount, error)
+
+            total_error += error
+
+            # For a random frame - write out the outputs
+            if frameCount == MAX_FRAMES / 2:
+                img = np.zeros( (videoObj.frameHeight, videoObj.frameWidth, 3), np.uint8)
+                for old, new, transformed in zip(old_corners, new_corners, transformed_corners):
+                    pt_old = (old[0][0], old[0][1])
+                    pt_new = (new[0][0], new[0][1])
+                    pt_transformed = (transformed[0][0], transformed[0][1])
+                    cv2.line(img, pt_old, pt_old, (0, 0, 255), 2)
+                    cv2.line(img, pt_new, pt_new, (0, 255, 0), 1)
+                    cv2.line(img, pt_transformed, pt_transformed, (0, 255, 255), 1)
+                cv2.imwrite("/tmp/ddd%04d-a.png" % frameCount, img)
+
+            # INCRMENT
+            #frameCount += 1
+            previous_timestamp = current_timestamp
+
+        return total_error
 
         # Ideally, after our transformation, we should get points from the
         # thetas to match new_corners
