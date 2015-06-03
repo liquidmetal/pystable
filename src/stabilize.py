@@ -82,11 +82,55 @@ def roty_matrix(angle):
 def rotz_matrix(angle):
     return rotation_matrix(angle, [0, 0, 1])
 
+def meshwarp(src, distorted_grid):
+    """
+    src: The source image (Mat)
+    distorted_grid: An n*n distorted_grid 
+    """
+    size = src.shape
+    mapsize = (size[0], size[1], 1)
+    dst = np.zeros(size, dtype=np.uint8)
+    #mapx = np.zeros(mapsize, dtype=np.float32)
+    #mapy = np.zeros(mapsize, dtype=np.float32)
+
+    quads_per_row = len(distorted_grid[0]) - 1
+    quads_per_col = len(distorted_grid) - 1
+    pixels_per_row = size[1] / quads_per_row
+    pixels_per_col = size[0] / quads_per_col
+
+    pt_src_all = []
+    pt_dst_all = []
+
+    for i in distorted_grid:
+        pt_src_all.extend(i)
+
+    for x in range(quads_per_row+1):
+        for y in range(quads_per_col+1):
+            pt_dst_all.append([x*pixels_per_col, y*pixels_per_row])
+
+    gx, gy = np.mgrid[0:size[1], 0:size[0]]
+
+    g_out = griddata(np.array(pt_dst_all), np.array(pt_src_all), (gx, gy), method='linear')
+    mapx = np.append([], [ar[:,0] for ar in g_out]).reshape(mapsize).astype('float32')
+    mapy = np.append([], [ar[:,1] for ar in g_out]).reshape(mapsize).astype('float32')
+
+    dst = cv2.remap(src, mapx, mapy, cv2.INTER_LINEAR)
+    cv2.imwrite('/tmp/test.png', dst)
+    return dst
 
 if __name__ == '__main__':
-    rx = rotx_matrix(math.radians(45))
-    ry = roty_matrix(math.radians(45))
-    rz = rotz_matrix(math.radians(45))
+    #rx = rotx_matrix(math.radians(45))
+    #ry = roty_matrix(math.radians(45))
+    #rz = rotz_matrix(math.radians(45))
 
-    print rz * rx * ry
+    #print rz * rx * ry
+    img = cv2.imread("/work/blueprints/c7/data/mesh2.png")
+
+    grid = [[(0,0), (100, 0), (200, 0), (300, 0)],
+            [(0, 100), (150, 50), (200, 50), (300, 100)],
+            [(0, 200), (150, 100), (200, 100), (300, 200)],
+            [(0, 300), (100, 300), (200, 300), (300, 300)],
+    ]
+
+    meshwarp(img, grid)
 
