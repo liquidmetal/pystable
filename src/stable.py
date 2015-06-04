@@ -175,10 +175,15 @@ def getAccumulatedRotation(w, h, theta_x, theta_y, theta_z, timestamps, prev, cu
                      [0, 0, 0, 1.0]])
     T = np.asmatrix(x)
     x = np.array([[f, 0, w/2, 0],
-                 [0, f, h/2, 0],
-                 [0, 0, 1, 0]])
+                  [0, f, h/2, 0],
+                  [0, 0, 1, 0]])
+    transform = R*(T*transform)
+
     A2 = np.asmatrix(x)
-    transform = A2 * (T*transform)
+
+    # TODO trying translation followed by rotation
+    # transform = A2 * (T*transform)
+    transform = A2 * transform
 
     return transform
 
