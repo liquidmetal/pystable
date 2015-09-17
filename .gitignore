@@ -1,2 +1,8 @@
 .virtualenv
 data/
+android/GyroRecorder/.gradle/
+android/GyroRecorder/local.properties
+android/GyroRecorder/.idea/workspace.xml
+android/GyroRecorder/.idea/libraries
+android/GyroRecorder/build
+*.pyc
